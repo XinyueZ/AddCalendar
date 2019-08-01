@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">+Calendario</string>
+    <string name="add_to_calendar_toolbar_wrong_datetime_format">Formato appuntamento errato per inserire un nuovo evento nel calendario.</string>
+</resources>

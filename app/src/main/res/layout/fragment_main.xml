@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:are="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data class="MainFragmentBinding">
+
+        <variable
+            name="viewModel"
+            type="io.add.calendar.viewmodels.MainViewModel" />
+    </data>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/add_calendar_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+
+        <!--TODO check auto-fill issue by IDE-->
+        <EditText
+            android:id="@+id/add_calendar_datetime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:enabled="false"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:focusedByDefault="true"
+            android:hint="@string/add_to_calendar_title"
+            android:inputType="datetime"
+            android:paddingStart="0dp"
+            android:text="@{viewModel.selectedDatetimeText}"
+            app:layout_constraintBottom_toBottomOf="@id/add_calendar_date"
+            app:layout_constraintEnd_toStartOf="@id/add_calendar_date"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/add_calendar_date"
+            tools:ignore="RtlSymmetry" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/add_calendar_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:onClick="@{(v) -> viewModel.openDateChooser.onClick(v)}"
+            app:backgroundTint="@color/colorAccent"
+            app:icon="@drawable/ic_date"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:layout_constraintEnd_toStartOf="@id/add_calendar_time"
+            app:layout_constraintStart_toEndOf="@id/add_calendar_datetime"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/add_calendar_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="24dp"
+            android:onClick="@{(v) -> viewModel.openTimeChooser.onClick(v)}"
+            app:backgroundTint="@color/colorAccent"
+            app:icon="@drawable/ic_time"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.chinalwb.are.AREditor
+            android:id="@+id/add_calendar_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:tooltipText="@string/add_to_calendar_hint"
+            app:editorContent="@{viewModel.editorContent}"
+            app:layout_constraintBottom_toTopOf="@id/open_calendar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/add_calendar_date"
+            are:expandMode="FULL"
+            are:hideToolbar="@{!viewModel.useEditorToolbar}"
+            are:toolbarAlignment="TOP" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/open_calendar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="24dp"
+            android:onClick="@{(v) -> viewModel.calendarChooser.onClick(v)}"
+            android:text="@string/add_to_calendar_open_calendar"
+            android:tooltipText="@string/add_to_calendar_open_calendar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/add_calendar_editor_toolbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginBottom="24dp"
+            android:onCheckedChanged="@{(v,isChecked) -> viewModel.toolbarToggle(isChecked)}"
+            android:text="@string/add_to_calendar_toolbar_toggle"
+            android:tooltipText="@string/add_to_calendar_toolbar_toggle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

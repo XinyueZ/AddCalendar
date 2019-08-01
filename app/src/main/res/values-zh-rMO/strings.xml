@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">+日曆</string>
+    <string name="add_to_calendar_toolbar_wrong_datetime_format">用於將新事件插入日曆的日期時間格式錯誤。</string>
+</resources>
