@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">+Kalendarz</string>
+    <string name="add_to_calendar_toolbar_wrong_datetime_format">Nieprawidłowy format daty i godziny wstawienia nowego zdarzenia do kalendarza.</string>
+</resources>

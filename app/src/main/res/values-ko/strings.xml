@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">+달력</string>
+    <string name="add_to_calendar_toolbar_wrong_datetime_format">달력에 새 이벤트를 삽입하는 잘못된 날짜 시간 형식입니다.</string>
+</resources>
