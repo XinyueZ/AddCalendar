@@ -18,26 +18,41 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     val onSetupCompleted: LiveData<Event<Unit>> = _onSetupCompleted
 
     fun setup() {
+        if (setupInProgress.get()) return //Ignore any intercept while setup is in progress.
+
+        setupStart()
         getModels()
     }
 
+    /**
+     * Download language model which the device's setting.
+     */
     private fun getModels() {
-        setupInProgress.set(true)
         val langId =
             FirebaseTranslateLanguage.languageForLanguageCode(Locale.getDefault().language) ?: -1
-        val langModel: FirebaseTranslateRemoteModel =
-            FirebaseTranslateRemoteModel.Builder(langId)
-                .build()
-        val modelManager: FirebaseTranslateModelManager =
-            FirebaseTranslateModelManager.getInstance()
-        modelManager.downloadRemoteModelIfNeeded(langModel)
-            .addOnSuccessListener {
-                setupInProgress.set(false)
-                _onSetupCompleted.value = Event(Unit)
-            }
-            .addOnFailureListener {
-                setupInProgress.set(false)
-                _onSetupCompleted.value = Event(Unit)
-            }
+        if (langId > 0) {
+            val langModel: FirebaseTranslateRemoteModel =
+                FirebaseTranslateRemoteModel.Builder(langId).build()
+            val modelManager: FirebaseTranslateModelManager =
+                FirebaseTranslateModelManager.getInstance()
+            modelManager.downloadRemoteModelIfNeeded(langModel)
+                .addOnSuccessListener {
+                    setupCompleted()
+                }
+                .addOnFailureListener {
+                    setupCompleted()
+                }
+        } else {
+            setupCompleted()
+        }
+    }
+
+    private fun setupStart() {
+        setupInProgress.set(true)
+    }
+
+    private fun setupCompleted() {
+        setupInProgress.set(false)
+        _onSetupCompleted.value = Event(Unit)
     }
 }

@@ -165,6 +165,7 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
             Log.d("+Calendar", "classification Score: $score")
             if (entity == TextClassifier.TYPE_DATE || entity == TextClassifier.TYPE_DATE_TIME) {
                 calendar.apply {
+                    @Suppress("DEPRECATION")
                     timeInMillis = Date.parse(translated)
                 }
                 return calendar
@@ -181,6 +182,7 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
                     Log.d("+Calendar", "classification Score: $score")
                     if (entity == TextClassifier.TYPE_DATE || entity == TextClassifier.TYPE_DATE_TIME) {
                         calendar.apply {
+                            @Suppress("DEPRECATION")
                             timeInMillis = Date.parse(translated)
                         }
                         return calendar
