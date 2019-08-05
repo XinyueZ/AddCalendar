@@ -11,8 +11,8 @@ import io.add.calendar.utils.getScreenHeight
 import io.add.calendar.utils.getScreenWidth
 import io.add.calendar.viewmodels.MainViewModel
 import io.add.calendar.viewmodels.MainViewModelFactory
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.math.roundToInt
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 

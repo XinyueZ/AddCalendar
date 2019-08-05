@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.observe
 import io.add.calendar.databinding.MainFragmentBinding2
+import io.add.calendar.utils.EventObserver
 import io.add.calendar.viewmodels.MainViewModel2
 import io.add.calendar.viewmodels.MainViewModelFactory2
 
@@ -36,19 +36,21 @@ class MainFragment2 : Fragment() {
     }
 
     private fun subscribeUi() {
-        viewModel.onInferenceFinished.observe(viewLifecycleOwner) { evInferenceFinished ->
-            if (evInferenceFinished()) {
-                requireActivity().finish()
-            }
-        }
-        viewModel.onPanic.observe(viewLifecycleOwner) { evPanic ->
-            if (evPanic()) {
+        viewModel.onInferenceFinished.observe(
+            viewLifecycleOwner,
+            EventObserver { evInferenceFinished ->
+                if (evInferenceFinished) {
+                    requireActivity().finish()
+                }
+            })
+        viewModel.onPanic.observe(viewLifecycleOwner, EventObserver { evPanic ->
+            if (evPanic) {
                 Toast.makeText(
                     requireContext(),
                     R.string.add_to_calendar_toolbar_wrong_datetime_format,
                     Toast.LENGTH_LONG
                 ).show()
             }
-        }
+        })
     }
 }
