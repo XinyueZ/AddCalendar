@@ -7,8 +7,11 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import io.add.calendar.databinding.MainActivityBinding
+import io.add.calendar.utils.EventObserver
+import io.add.calendar.utils.startSingleTopActivity
 import io.add.calendar.viewmodels.MainViewModel
 import io.add.calendar.viewmodels.MainViewModelFactory
+import kotlinx.android.synthetic.*
 import kotlinx.android.synthetic.main.fragment_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -22,8 +25,15 @@ class MainActivity : AppCompatActivity() {
         DataBindingUtil.setContentView<MainActivityBinding>(this, R.layout.activity_main).apply {
             lifecycleOwner = this@MainActivity
         }
+        subscribeUi()
         Log.d("+Calendar", "vm address: $viewModel")
         handleIntent(intent)
+    }
+
+    private fun subscribeUi() {
+        viewModel.navigateToAppSetup.observe(this, EventObserver {
+            startSingleTopActivity<SetupActivity>()
+        })
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -35,6 +45,11 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         viewModel.cancel()
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        clearFindViewByIdCache()
+        super.onDestroy()
     }
 
     private fun handleIntent(intent: Intent?) {

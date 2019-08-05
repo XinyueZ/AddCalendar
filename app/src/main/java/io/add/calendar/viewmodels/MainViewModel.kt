@@ -13,14 +13,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import io.add.calendar.domain.DatetimeInference
+import io.add.calendar.domain.IAppStartChecker
 import io.add.calendar.utils.Event
-import kotlin.properties.Delegates
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.properties.Delegates
 
-class MainViewModel(app: Application) : AndroidViewModel(app) {
+class MainViewModel(app: Application, appStartChecker: IAppStartChecker) : AndroidViewModel(app),
+    IAppStartChecker by appStartChecker {
 
     private var datetimeInference: DatetimeInference? = null
 
@@ -31,8 +33,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val onPanic: LiveData<Event<Boolean>> = _onPanic
 
     var selectedText: String by Delegates.observable("") { _, _, newValue ->
+        if (checkLaunchedFirstTimeOrNot()) {
+            isFirstLaunched = false
+            return@observable
+        }
         if (newValue.isNotBlank()) inference(newValue)
         else _onPanic.value = Event(true)
+    }
+
+    private fun checkLaunchedFirstTimeOrNot(): Boolean = isFirstLaunched.apply {
+        if (this) {
+            gotoAppSetup()
+        }
     }
 
     private fun openCalendar(calendar: Calendar) {
