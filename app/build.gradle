@@ -74,10 +74,9 @@ dependencies {
      */
     implementation "com.google.android.material:material:1.1.0-alpha09"
     /**
-     * Rich-editor
+     * Image-loader
      */
     implementation 'com.github.bumptech.glide:glide:4.9.0'
-    implementation 'com.github.chinalwb:are:0.1.7'
     /**
      * TESTs
      */

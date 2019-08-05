@@ -1,8 +1,4 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">+Calendar</string>
-    <string name="add_to_calendar_title" tools:ignore="MissingTranslation">Selected slot</string>
-    <string name="add_to_calendar_open_calendar" tools:ignore="MissingTranslation">Open calendar</string>
-    <string name="add_to_calendar_hint" tools:ignore="MissingTranslation">Add calendar content here…</string>
-    <string name="add_to_calendar_toolbar_toggle" tools:ignore="MissingTranslation">Toolbar</string>
     <string name="add_to_calendar_toolbar_wrong_datetime_format">Wrong datetime format to insert new event to calendar.</string>
 </resources>
