@@ -77,7 +77,7 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
     override var translated: String
         get() = _translated
         set(value) {
-            _translated = value.replace("at", "") //TODO looking for nice solution, see #10
+            _translated = value.replace("at", "") // TODO looking for nice solution, see #10
         }
 
     private val textClassificationManager: TextClassificationManager =
