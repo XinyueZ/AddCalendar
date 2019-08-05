@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">+Календарь</string>
+    <string name="setup_in_progress_echo">Настройка приложения занимает несколько секунд.</string>
     <string name="add_to_calendar_toolbar_wrong_datetime_format">Неправильный формат даты и времени для вставки нового события в календарь.</string>
 </resources>

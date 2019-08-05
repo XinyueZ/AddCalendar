@@ -7,93 +7,83 @@ import android.icu.util.Calendar
 import android.net.Uri
 import android.os.Bundle
 import android.provider.CalendarContract
-import android.util.Log
-import android.view.View
-import androidx.core.content.ContextCompat.startActivity
-import androidx.databinding.Observable
-import androidx.databinding.Observable.OnPropertyChangedCallback
-import androidx.databinding.ObservableBoolean
-import androidx.databinding.ObservableField
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.findNavController
-import io.add.calendar.R
 import io.add.calendar.domain.DatetimeInference
+import io.add.calendar.domain.IAppStartChecker
+import io.add.calendar.utils.Event
+import kotlin.properties.Delegates
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainViewModel(app: Application) : AndroidViewModel(app) {
+class MainViewModel(app: Application, appStartChecker: IAppStartChecker) : AndroidViewModel(app),
+    IAppStartChecker by appStartChecker {
 
     private var datetimeInference: DatetimeInference? = null
 
-    val openDateChooser = View.OnClickListener {
-        it.findNavController().navigate(R.id.date_fragment)
+    private var _onInferenceFinished = MutableLiveData<Event<Boolean>>()
+    val onInferenceFinished: LiveData<Event<Boolean>> = _onInferenceFinished
+
+    private var _onPanic = MutableLiveData<Event<Boolean>>()
+    val onPanic: LiveData<Event<Boolean>> = _onPanic
+
+    var selectedText: String by Delegates.observable("") { _, _, newValue ->
+        if (checkLaunchedFirstTimeOrNot()) {
+            isFirstLaunched = false
+            return@observable
+        }
+        if (newValue.isNotBlank()) inference(newValue)
+        else _onPanic.value = Event(true)
     }
 
-    val openTimeChooser = View.OnClickListener {
-        it.findNavController().navigate(R.id.time_fragment)
+    private fun checkLaunchedFirstTimeOrNot(): Boolean = isFirstLaunched.apply {
+        if (this) {
+            gotoAppSetup()
+        }
     }
 
-    val calendarChooser = View.OnClickListener {
+    private fun openCalendar(calendar: Calendar) {
         val builder: Uri.Builder = CalendarContract.CONTENT_URI.buildUpon().appendPath("time")
-        ContentUris.appendId(builder, Calendar.getInstance().timeInMillis)
+        ContentUris.appendId(builder, calendar.timeInMillis)
         val intent = Intent(Intent.ACTION_EDIT).apply {
             data = builder.build()
             type = "vnd.android.cursor.item/event"
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, Calendar.getInstance().timeInMillis)
-            putExtra(CalendarContract.Events.TITLE, "For some testings")
-            putExtra(CalendarContract.Events.DESCRIPTION, "bla bla bla testings")
+            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, calendar.timeInMillis)
+            putExtra(CalendarContract.Events.TITLE, "")
+            putExtra(CalendarContract.Events.DESCRIPTION, "")
         }
-        startActivity(it.context, intent, Bundle.EMPTY)
+        ContextCompat.startActivity(getApplication(), intent, Bundle.EMPTY)
     }
 
-    val useEditorToolbar = ObservableBoolean(false)
-
-    val editorContent = ObservableField<String>()
-
-    val selectedDatetimeText = ObservableField<String>()
-
-    private val onSelectedDatetimeTextChangedCallback: OnPropertyChangedCallback =
-        object : OnPropertyChangedCallback() {
-            override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
-                selectedDatetimeText.get()?.let { datetimeText ->
-                    datetimeInference = DatetimeInference(getApplication(), datetimeText)
-                    viewModelScope.launch(Dispatchers.IO) {
-                        val calendar: Calendar? = datetimeInference?.getResult()
-                        withContext(Dispatchers.Main) {
-                            calendar?.let {
-                                Log.d(
-                                    "+Calendar",
-                                    "classification Calendar: ${calendar.time}"
-                                )
-                            } ?: Log.d(
-                                "+Calendar",
-                                "classification Calendar: $calendar"
-                            )
-                        }
-                    }
-                } ?: Log.d(
-                    "+Calendar",
-                    "classification Calendar: empty selected datetime"
-                )
+    private fun inference(text: String) {
+        datetimeInference = DatetimeInference(getApplication(), text)
+        viewModelScope.launch(Dispatchers.IO) {
+            val calendar: Calendar? = datetimeInference?.getResult()
+            withContext(Dispatchers.Main) {
+                calendar?.let {
+                    openCalendar(calendar)
+                } ?: run {
+                    _onPanic.value = Event(true)
+                }
+                _onInferenceFinished.value = Event(true)
             }
         }
+    }
 
-    init {
-        selectedDatetimeText.addOnPropertyChangedCallback(onSelectedDatetimeTextChangedCallback)
+    fun cancel() {
+        viewModelScope.cancel()
+        datetimeInference?.release()
+        _onInferenceFinished.value = Event(true)
     }
 
     override fun onCleared() {
-        selectedDatetimeText.removeOnPropertyChangedCallback(onSelectedDatetimeTextChangedCallback)
-        viewModelScope.cancel()
-        datetimeInference?.release()
+        cancel()
         super.onCleared()
-    }
-
-    fun toolbarToggle(isOpen: Boolean) {
-        useEditorToolbar.set(isOpen)
     }
 }

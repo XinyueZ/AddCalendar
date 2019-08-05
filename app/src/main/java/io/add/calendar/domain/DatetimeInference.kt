@@ -3,6 +3,7 @@ package io.add.calendar.domain
 import android.content.Context
 import android.icu.util.Calendar
 import android.util.Log
+import androidx.core.os.LocaleListCompat
 import androidx.textclassifier.TextClassification
 import androidx.textclassifier.TextClassificationManager
 import androidx.textclassifier.TextClassifier
@@ -76,7 +77,7 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
     override var translated: String
         get() = _translated
         set(value) {
-            _translated = value
+            _translated = value.replace("at", "") // TODO looking for nice solution, see #10
         }
 
     private val textClassificationManager: TextClassificationManager =
@@ -150,7 +151,13 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
 
     override suspend fun buildResult(): Calendar? {
         val calendar = Calendar.getInstance()
-        val builder = TextClassification.Request.Builder(translated, 0, translated.length)
+        val builder: TextClassification.Request.Builder =
+            TextClassification.Request
+                .Builder(translated, 0, translated.length)
+                .setDefaultLocales(
+                    LocaleListCompat.getAdjustedDefault()
+                )
+
         val classification: TextClassification = classifier.classifyText(builder.build())
         var entity: String
         var score: Float

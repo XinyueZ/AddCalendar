@@ -22,12 +22,4 @@
         android:id="@+id/main_fragment"
         android:name="io.add.calendar.MainFragment" />
 
-    <dialog
-        android:id="@+id/date_fragment"
-        android:name="io.add.calendar.DatePickerFragment" />
-
-    <dialog
-        android:id="@+id/time_fragment"
-        android:name="io.add.calendar.TimePickerFragment" />
-
 </navigation>

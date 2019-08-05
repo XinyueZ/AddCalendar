@@ -24,41 +24,47 @@
             style="@style/TextAppearance.MaterialComponents.Headline2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
             android:paddingBottom="@dimen/general_padding_margin"
+            android:text="@string/app_name"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:layout_width="match_parent"
+        <VideoView
+            android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/general_padding_margin"
-            android:src="@drawable/setup_guide"
-            app:layout_constraintBottom_toTopOf="@id/progress_bar"
+            app:layout_constraintBottom_toTopOf="@id/setup_done"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/setup_caption"
+            app:src="@{@string/setup_guide_file}"
             tools:ignore="ContentDescription" />
 
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            style="?android:attr/progressBarStyleSmall"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:indeterminate="true"
-            android:visibility="@{viewModel.setupInProgress ? View.VISIBLE  : View.INVISIBLE}"
-            app:layout_constraintBottom_toTopOf="@id/setup_ok"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/setup_ok"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/setup_done"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="@dimen/general_padding_margin"
             android:onClick="@{(_) -> viewModel.setup()}"
+            android:src="@{viewModel.setupInProgress ? @drawable/ic_animated_loading_pb : @drawable/ic_done}"
             android:text="@android:string/ok"
+            app:elevation="@dimen/fab_elevation"
+            app:fabSize="normal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:startAnimation="@{viewModel.setupInProgress}" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{(_) -> viewModel.shareApp(@string/share_app)}"
+            android:src="@drawable/ic_share"
+            app:backgroundTint="?android:textColorSecondary"
+            app:elevation="0dp"
+            app:fabSize="mini"
+            app:tint="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="@id/setup_caption"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/setup_caption" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
