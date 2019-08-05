@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">+Calendrier</string>
+    <string name="setup_in_progress_echo">Il faut quelques secondes pour configurer l\'application.</string>
     <string name="add_to_calendar_toolbar_wrong_datetime_format">Format de date / heure incorrect pour insérer un nouvel événement dans le calendrier.</string>
 </resources>

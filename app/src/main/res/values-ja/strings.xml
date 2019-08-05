@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">+カレンダー</string>
+    <string name="setup_in_progress_echo">アプリの設定には数秒かかります。</string>
     <string name="add_to_calendar_toolbar_wrong_datetime_format">カレンダーに新しい予定を挿入するための間違った日時形式。</string>
 </resources>
