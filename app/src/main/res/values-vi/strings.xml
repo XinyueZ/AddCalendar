@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">+Lịch</string>
+    <string name="setup_in_progress_echo">Phải mất vài giây để cấu hình ứng dụng.</string>
     <string name="add_to_calendar_toolbar_wrong_datetime_format">Định dạng ngày giờ sai để chèn sự kiện mới vào lịch.</string>
 </resources>
