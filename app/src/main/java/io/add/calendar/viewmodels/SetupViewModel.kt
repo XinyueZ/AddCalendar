@@ -18,7 +18,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     val onSetupCompleted: LiveData<Event<Unit>> = _onSetupCompleted
 
     fun setup() {
-        if (setupInProgress.get()) return //Ignore any intercept while setup is in progress.
+        if (setupInProgress.get()) return // Ignore any intercept while setup is in progress.
 
         setupStart()
         getModels()

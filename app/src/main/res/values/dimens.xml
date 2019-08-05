@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="general_padding_margin">16dp</dimen>
-    <dimen name="main_view_margin_outside">16dp</dimen>
 </resources>
