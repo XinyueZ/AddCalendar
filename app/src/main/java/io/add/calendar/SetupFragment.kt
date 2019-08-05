@@ -7,8 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.observe
 import io.add.calendar.databinding.SetupFragmentBinding
+import io.add.calendar.extensions.shareCompat
+import io.add.calendar.utils.EventObserver
 import io.add.calendar.viewmodels.SetupViewModel
 import io.add.calendar.viewmodels.SetupViewModelFactory
 
@@ -35,8 +36,11 @@ class SetupFragment : Fragment() {
     }
 
     private fun subscribeUi() {
-        viewModel.onSetupCompleted.observe(viewLifecycleOwner) {
+        viewModel.onSetupCompleted.observe(viewLifecycleOwner, EventObserver {
             requireActivity().finish()
-        }
+        })
+        viewModel.onShareApp.observe(viewLifecycleOwner, EventObserver { shareText ->
+            requireActivity().shareCompat(shareText)
+        })
     }
 }
