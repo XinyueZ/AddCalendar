@@ -54,15 +54,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:startAnimation="@{viewModel.setupInProgress}" />
 
-        <ImageButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
-            android:contentDescription="@null"
             android:onClick="@{(_) -> viewModel.shareApp(@string/share_app)}"
-            android:padding="@dimen/general_padding_margin"
             android:src="@drawable/ic_share"
+            app:backgroundTint="?android:textColorSecondary"
+            app:elevation="0dp"
+            app:fabSize="mini"
+            app:tint="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="@id/setup_caption"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@id/setup_caption" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
