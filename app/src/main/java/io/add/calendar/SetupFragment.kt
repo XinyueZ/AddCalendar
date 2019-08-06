@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.add.calendar.databinding.SetupFragmentBinding
+import io.add.calendar.extensions.shareCompat
 import io.add.calendar.utils.EventObserver
 import io.add.calendar.viewmodels.SetupViewModel
 import io.add.calendar.viewmodels.SetupViewModelFactory
@@ -41,6 +42,9 @@ class SetupFragment : Fragment() {
         })
         viewModel.onSetupCompleted.observe(viewLifecycleOwner, EventObserver {
             requireActivity().finish()
+        })
+        viewModel.onShareApp.observe(viewLifecycleOwner, EventObserver { shareText ->
+            requireActivity().shareCompat(shareText)
         })
     }
 }

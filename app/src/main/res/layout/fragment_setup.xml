@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/general_padding_margin"
-            app:layout_constraintBottom_toTopOf="@id/setup_ok"
+            app:layout_constraintBottom_toTopOf="@id/setup_done"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/setup_caption"
@@ -41,7 +41,7 @@
             tools:ignore="ContentDescription" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/setup_ok"
+            android:id="@+id/setup_done"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/general_padding_margin"
@@ -53,5 +53,16 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:startAnimation="@{viewModel.setupInProgress}" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:contentDescription="@null"
+            android:onClick="@{(_) -> viewModel.shareApp(@string/share_app)}"
+            android:padding="@dimen/general_padding_margin"
+            android:src="@drawable/ic_share"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

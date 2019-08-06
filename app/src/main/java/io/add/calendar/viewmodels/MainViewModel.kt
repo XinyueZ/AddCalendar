@@ -15,11 +15,11 @@ import androidx.lifecycle.viewModelScope
 import io.add.calendar.domain.DatetimeInference
 import io.add.calendar.domain.IAppStartChecker
 import io.add.calendar.utils.Event
+import kotlin.properties.Delegates
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.properties.Delegates
 
 class MainViewModel(app: Application, appStartChecker: IAppStartChecker) : AndroidViewModel(app),
     IAppStartChecker by appStartChecker {

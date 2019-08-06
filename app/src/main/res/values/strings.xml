@@ -3,4 +3,5 @@
     <string name="setup_guide_file" translatable="false">setup_guide</string>
     <string name="setup_in_progress_echo">Configuring the app, it\'ll take several seconds.</string>
     <string name="add_to_calendar_toolbar_wrong_datetime_format">Wrong datetime format to insert new event to calendar.</string>
+    <string name="share_app" tools:ignore="MissingTranslation">\"+Calendar\"\n\nTry: https://youtu.be/Ih3n1wOkL6Y\n\nPlay Store: http://tinyurl.com/y5de3utr</string>
 </resources>

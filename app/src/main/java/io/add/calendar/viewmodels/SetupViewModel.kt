@@ -21,6 +21,9 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     private val _onSetupCompleted = MutableLiveData<Event<Unit>>()
     val onSetupCompleted: LiveData<Event<Unit>> = _onSetupCompleted
 
+    private val _onShareApp = MutableLiveData<Event<String>>()
+    val onShareApp: LiveData<Event<String>> = _onShareApp
+
     fun setup() {
         _echo.value = Event(R.string.setup_in_progress_echo)
         if (setupInProgress.get()) return // Ignore any intercept while setup is in progress.
@@ -60,5 +63,9 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     private fun setupCompleted() {
         setupInProgress.set(false)
         _onSetupCompleted.value = Event(Unit)
+    }
+
+    fun shareApp(shareText: String) {
+        _onShareApp.value = Event(shareText)
     }
 }
