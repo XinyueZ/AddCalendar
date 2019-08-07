@@ -9,6 +9,10 @@ Just click `+Calendar`.
 
 [![preview](medium/preview.gif)](https://lnkd.in/d2Gys7K)
 
+# Home
+
+https://sites.google.com/view/add-calendar
+
 # License
 
 Copyright 2019  
