@@ -5,11 +5,16 @@ import androidx.databinding.ObservableBoolean
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.ml.common.modeldownload.FirebaseModelDownloadConditions
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateModelManager
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateRemoteModel
 import io.add.calendar.R
 import io.add.calendar.utils.Event
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 class SetupViewModel(app: Application) : AndroidViewModel(app) {
@@ -36,22 +41,48 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
      * Download language model which the device's setting.
      */
     private fun getModels() {
-        val langId =
-            FirebaseTranslateLanguage.languageForLanguageCode(Locale.getDefault().language) ?: -1
-        if (langId > 0) {
-            val langModel: FirebaseTranslateRemoteModel =
-                FirebaseTranslateRemoteModel.Builder(langId).build()
-            val modelManager: FirebaseTranslateModelManager =
-                FirebaseTranslateModelManager.getInstance()
-            modelManager.downloadRemoteModelIfNeeded(langModel)
-                .addOnSuccessListener {
-                    setupCompleted()
-                }
-                .addOnFailureListener {
-                    setupCompleted()
-                }
+
+        fun createTranslateRemoteModel(
+            forceDownload: Boolean,
+            langId: Int
+        ): FirebaseTranslateRemoteModel = if (forceDownload) {
+            // These languages must be downloaded.
+            FirebaseTranslateRemoteModel.Builder(langId).build()
         } else {
-            setupCompleted()
+            // These languages can be downloaded under some hardware, environment conditions.
+            FirebaseTranslateRemoteModel.Builder(langId).setDownloadConditions(
+                FirebaseModelDownloadConditions.Builder().requireDeviceIdle().build()
+            ).build()
+        }
+
+        fun downloadModels(forceDownload: Boolean, vararg langNames: String) {
+            langNames.forEach { langName ->
+                val langId =
+                    FirebaseTranslateLanguage.languageForLanguageCode(langName) ?: -1
+                if (langId > 0) {
+                    val langModel: FirebaseTranslateRemoteModel =
+                        createTranslateRemoteModel(forceDownload, langId)
+                    val download =
+                        FirebaseTranslateModelManager.getInstance()
+                            .downloadRemoteModelIfNeeded(langModel)
+                    while (!download.isComplete) continue
+                }
+            }
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            downloadModels(
+                true,
+                Locale.getDefault().language,
+                "en"
+            )
+            downloadModels(
+                false,
+                "fr", "zh", "de"
+            )
+            withContext(Dispatchers.Main) {
+                setupCompleted()
+            }
         }
     }
 
@@ -69,3 +100,63 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         _onShareApp.value = Event(shareText)
     }
 }
+
+// "af",
+// "ar",
+// "be",
+// "bg",
+// "bn",
+// "ca",
+// "cs",
+// "cy",
+// "da",
+// "de",
+// "el",
+// "en",
+// "eo",
+// "es",
+// "et",
+// "fa",
+// "fi",
+// "fr",
+// "ga",
+// "gl",
+// "gu",
+// "he",
+// "hi",
+// "hr",
+// "ht",
+// "hu",
+// "id",
+// "is",
+// "it",
+// "ja",
+// "ka",
+// "kn",
+// "ko",
+// "lt",
+// "lv",
+// "mk",
+// "mr",
+// "ms",
+// "mt",
+// "nl",
+// "no",
+// "pl",
+// "pt",
+// "ro",
+// "ru",
+// "sk",
+// "sl",
+// "sq",
+// "sv",
+// "sw",
+// "ta",
+// "te",
+// "th",
+// "tl",
+// "tr",
+// "uk",
+// "ur",
+// "vi",
+// "zh"
