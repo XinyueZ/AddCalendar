@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateEditorSize() {
         add_calendar_main.layoutParams.run {
-            width = 400
+            width = 600
             height = 50
         }
     }

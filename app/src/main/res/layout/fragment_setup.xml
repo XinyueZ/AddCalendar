@@ -30,6 +30,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <VideoView
+            android:id="@+id/setup_video"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/general_padding_margin"
@@ -54,6 +55,22 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:startAnimation="@{viewModel.setupInProgress}" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:lines="2"
+            android:layout_marginStart="@dimen/general_padding_margin"
+            android:layout_marginEnd="@dimen/general_padding_margin"
+            style="@style/TextAppearance.MaterialComponents.Subtitle2"
+            android:singleLine="false"
+            android:text="@{viewModel.setupInProgress ? @string/setup_in_progress_echo : @string/empty}"
+            app:layout_constraintBottom_toBottomOf="@id/setup_done"
+            app:layout_constraintEnd_toStartOf="@id/setup_done"
+            app:layout_constraintStart_toStartOf="@id/setup_video"
+            tools:text="@+string/setup_in_progress_echo"
+            app:layout_constraintTop_toTopOf="@id/setup_done" />
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -62,9 +79,9 @@
             app:backgroundTint="?android:textColorSecondary"
             app:elevation="0dp"
             app:fabSize="mini"
-            app:tint="@android:color/white"
             app:layout_constraintBottom_toBottomOf="@id/setup_caption"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/setup_caption" />
+            app:layout_constraintTop_toTopOf="@id/setup_caption"
+            app:tint="@android:color/white" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
