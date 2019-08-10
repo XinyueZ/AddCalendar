@@ -29,8 +29,7 @@ interface IDatetimeInference {
     /**
      * Get result of inference.
      */
-    suspend fun getResult(): Calendar? =
-        doClassificationBeforeTranslation(source) ?: doTranslationBeforeClassification(source)
+    suspend fun getResult(): Calendar?
 
     /**
      * Do translation on the [text] to [translated] firstly.

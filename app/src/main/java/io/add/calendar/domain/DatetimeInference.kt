@@ -20,8 +20,24 @@ import java.util.Locale
 
 const val UND = -1
 
-class DatetimeInference(context: Context, _source: String) : IDatetimeInference {
+class DatetimeInference(
+    context: Context,
+    _source: String,
+    private val delegate: IDatetimeInference = SimpleDatetimeInference(context, _source)
+) : SimpleDatetimeInference(context, _source) {
+
+    override suspend fun getResult(): Calendar? =
+        delegate.doClassificationBeforeTranslation(source)
+            ?: delegate.doTranslationBeforeClassification(source)
+
+}
+
+open class SimpleDatetimeInference(
+    context: Context,
+    _source: String
+) : IDatetimeInference {
     private lateinit var _translated: String
+
     private val _adjustedSource: String = _source.trim()
         .replace("\n", "")
         .replace("\t", "")
@@ -57,6 +73,8 @@ class DatetimeInference(context: Context, _source: String) : IDatetimeInference 
         languageIdentifier.close()
         translator.close()
     }
+
+    override suspend fun getResult(): Calendar? = doClassificationBeforeTranslation(source)
 
     override suspend fun doTranslationBeforeClassification(text: String): Calendar? {
         findLanguageId(text)

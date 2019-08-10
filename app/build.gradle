@@ -101,6 +101,11 @@ dependencies {
     testImplementation "org.mockito:mockito-inline:${mockito}"
     testImplementation "org.mockito:mockito-android:${mockito}"
     testImplementation "com.nhaarman:mockito-kotlin:1.6.0"
+    androidTestImplementation "org.mockito:mockito-core:${mockito}"
+    androidTestImplementation "org.mockito:mockito-inline:${mockito}"
+    androidTestImplementation "org.mockito:mockito-android:${mockito}"
+    androidTestImplementation "com.nhaarman:mockito-kotlin:1.6.0"
+    androidTestImplementation "net.bytebuddy:byte-buddy:1.9.14"
 }
 
 apply plugin: 'com.google.gms.google-services'
