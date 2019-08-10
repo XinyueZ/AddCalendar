@@ -22,6 +22,11 @@ interface IDatetimeInference {
     val translated: String
 
     /**
+     * Translation to English only when [isAlreadyEnglish] return false.
+     */
+    val isAlreadyEnglish: Boolean
+
+    /**
      * Get result of inference.
      */
     suspend fun getResult(): Calendar? =

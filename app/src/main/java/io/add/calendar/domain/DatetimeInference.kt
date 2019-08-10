@@ -12,6 +12,7 @@ import com.google.firebase.ml.naturallanguage.FirebaseNaturalLanguage
 import com.google.firebase.ml.naturallanguage.languageid.FirebaseLanguageIdentification
 import com.google.firebase.ml.naturallanguage.languageid.IdentifiedLanguage
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage
+import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage.EN
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslator
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslatorOptions
 import java.util.Date
@@ -19,7 +20,7 @@ import java.util.Locale
 
 const val UND = -1
 
-class DatetimeInference(context: Context, private val _source: String) : IDatetimeInference {
+class DatetimeInference(context: Context, _source: String) : IDatetimeInference {
     private lateinit var _translated: String
     private val _adjustedSource: String = _source.trim()
         .replace("\n", "")
@@ -32,6 +33,8 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
         set(value) {
             _translated = value.replace("at", "") // TODO looking for nice solution, see #10
         }
+
+    override val isAlreadyEnglish: Boolean get() = sourceLanguageId == EN
 
     private val textClassificationManager: TextClassificationManager =
         TextClassificationManager.of(context)
@@ -101,6 +104,14 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
     }
 
     override suspend fun translate(text: String) {
+        if (isAlreadyEnglish) {
+            Log.d(
+                "+Calendar",
+                "classification avoid translating: $text, detect English: $isAlreadyEnglish"
+            )
+            translated = text
+            return
+        }
         Log.d("+Calendar", "classification translating: $text")
 
         val download = translator.downloadModelIfNeeded()
@@ -138,9 +149,9 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
         if (entity == TextClassifier.TYPE_DATE || entity == TextClassifier.TYPE_DATE_TIME) {
             calendar.apply {
                 if (needTranslation) {
+                    Log.d("+Calendar", "classification need translating: $needTranslation")
                     findLanguageId(text)
                     translate(text)
-                    Log.d("+Calendar", "classification need translating: $needTranslation")
                 }
                 @Suppress("DEPRECATION")
                 timeInMillis = Date.parse(translated)
