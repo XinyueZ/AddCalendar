@@ -40,6 +40,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    testOptions {
+        animationsDisabled = true
+        unitTests {
+            all {
+                testLogging { exceptionFormat = "full" }
+            }
+            returnDefaultValues = true
+            includeAndroidResources = true
+        }
+    }
+
     // work-runtime-ktx 2.1.0 and above now requires Java 8
     kotlinOptions {
         jvmTarget = "1.8"
@@ -82,6 +94,9 @@ dependencies {
      */
     testImplementation "junit:junit:4.12"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
+    testImplementation("com.google.truth:truth:0.42") {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
     androidTestImplementation "androidx.arch.core:core-testing:2.0.1"
     androidTestImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$espressoVersion"

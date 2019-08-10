@@ -20,30 +20,25 @@ import java.util.Locale
 
 const val UND = -1
 
-class DatetimeInference(
+open class DatetimeInference(
     context: Context,
     _source: String,
-    private val delegate: IDatetimeInference = SimpleDatetimeInference(context, _source)
-) : SimpleDatetimeInference(context, _source) {
-
-    override suspend fun getResult(): Calendar? =
-        delegate.doClassificationBeforeTranslation(source)
-            ?: delegate.doTranslationBeforeClassification(source)
-
-}
-
-open class SimpleDatetimeInference(
-    context: Context,
-    _source: String
+    private val fallbackLanguage: String = Locale.getDefault().language
 ) : IDatetimeInference {
-    private lateinit var _translated: String
 
     private val _adjustedSource: String = _source.trim()
         .replace("\n", "")
         .replace("\t", "")
-
     override val source: String = _adjustedSource
 
+    private var _sourceLanguageId: Int = UND
+    override var sourceLanguageId: Int
+        get() = _sourceLanguageId
+        set(value) {
+            _sourceLanguageId = value
+        }
+
+    private lateinit var _translated: String
     override var translated: String
         get() = _translated
         set(value) {
@@ -55,7 +50,6 @@ open class SimpleDatetimeInference(
     private val textClassificationManager: TextClassificationManager =
         TextClassificationManager.of(context)
 
-    private var sourceLanguageId: Int = UND
 
     private val languageIdentifier: FirebaseLanguageIdentification by lazy {
         FirebaseNaturalLanguage.getInstance().languageIdentification
@@ -64,7 +58,7 @@ open class SimpleDatetimeInference(
     private val translator: FirebaseTranslator by lazy {
         val options = FirebaseTranslatorOptions.Builder()
             .setSourceLanguage(sourceLanguageId)
-            .setTargetLanguage(FirebaseTranslateLanguage.EN)
+            .setTargetLanguage(EN)
             .build()
         FirebaseNaturalLanguage.getInstance().getTranslator(options)
     }
@@ -74,7 +68,9 @@ open class SimpleDatetimeInference(
         translator.close()
     }
 
-    override suspend fun getResult(): Calendar? = doClassificationBeforeTranslation(source)
+    override suspend fun getResult(): Calendar? =
+        doClassificationBeforeTranslation(source)
+            ?: doTranslationBeforeClassification(source)
 
     override suspend fun doTranslationBeforeClassification(text: String): Calendar? {
         findLanguageId(text)
@@ -92,7 +88,7 @@ open class SimpleDatetimeInference(
         return buildResult(text, true)
     }
 
-    override suspend fun findLanguageId(text: String) {
+    override suspend fun findLanguageId(text: String, supportFallback: Boolean) {
         Log.d("+Calendar", "classification finding lang-id on: $text")
 
         val searchingLanguageId: Task<MutableList<IdentifiedLanguage>> =
@@ -107,21 +103,32 @@ open class SimpleDatetimeInference(
         } ?: run {
             sourceLanguageId = UND
         }
-        supportFallbackLanguageIdIfNeeded()
+
+        if (supportFallback) {
+            supportFallbackLanguageIdIfNeeded()
+        }
     }
 
     override suspend fun supportFallbackLanguageIdIfNeeded() {
         if (sourceLanguageId == UND) {
-            val fallbackLang = Locale.getDefault().language
             sourceLanguageId =
-                FirebaseTranslateLanguage.languageForLanguageCode(fallbackLang) ?: UND
+                FirebaseTranslateLanguage.languageForLanguageCode(fallbackLanguage) ?: UND
 
-            Log.d("+Calendar", "classification fallback lang: $fallbackLang")
+            Log.d("+Calendar", "classification fallback lang: $fallbackLanguage")
             Log.d("+Calendar", "classification fallback lang-id: $sourceLanguageId")
         } else Log.d("+Calendar", "classification lang-id: $sourceLanguageId")
     }
 
     override suspend fun translate(text: String) {
+        if (sourceLanguageId == UND) {
+            Log.d(
+                "+Calendar",
+                "classification avoid translating: $text, cannot detect language"
+            )
+            translated = text
+            return
+        }
+
         if (isAlreadyEnglish) {
             Log.d(
                 "+Calendar",
@@ -130,6 +137,7 @@ open class SimpleDatetimeInference(
             translated = text
             return
         }
+
         Log.d("+Calendar", "classification translating: $text")
 
         val download = translator.downloadModelIfNeeded()
@@ -156,26 +164,29 @@ open class SimpleDatetimeInference(
     }
 
     override suspend fun buildResult(text: String, needTranslation: Boolean): Calendar? {
-        val calendar = Calendar.getInstance()
-        val classification: TextClassification = createTextClassification(text)
+        try {
+            val calendar = Calendar.getInstance()
+            val classification: TextClassification = createTextClassification(text)
 
-        if (classification.entityTypeCount < 1) return null
-        val entity: String = classification.getEntityType(0)
-        val score: Float = classification.getConfidenceScore(entity)
-        Log.d("+Calendar", "classification Entity: $entity")
-        Log.d("+Calendar", "classification Score: $score")
-        if (entity == TextClassifier.TYPE_DATE || entity == TextClassifier.TYPE_DATE_TIME) {
-            calendar.apply {
-                if (needTranslation) {
-                    Log.d("+Calendar", "classification need translating: $needTranslation")
-                    findLanguageId(text)
-                    translate(text)
+            if (classification.entityTypeCount < 1) return null
+
+            val entity: String = classification.getEntityType(0)
+            val score: Float = classification.getConfidenceScore(entity)
+            Log.d("+Calendar", "classification Entity: $entity")
+            Log.d("+Calendar", "classification Score: $score")
+            return if (entity == TextClassifier.TYPE_DATE || entity == TextClassifier.TYPE_DATE_TIME) {
+                calendar.apply {
+                    if (needTranslation) {
+                        Log.d("+Calendar", "classification need translating: $needTranslation")
+                        findLanguageId(text)
+                        translate(text)
+                    }
+                    @Suppress("DEPRECATION")
+                    timeInMillis = Date.parse(translated)
                 }
-                @Suppress("DEPRECATION")
-                timeInMillis = Date.parse(translated)
-            }
-            return calendar
+            } else null
+        } catch (ex: Exception) {
+            return null
         }
-        return null
     }
 }

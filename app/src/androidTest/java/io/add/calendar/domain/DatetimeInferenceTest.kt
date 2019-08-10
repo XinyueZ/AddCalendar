@@ -9,15 +9,15 @@ import android.icu.util.Calendar.MONTH
 import android.icu.util.Calendar.YEAR
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.platform.app.InstrumentationRegistry
-import com.google.common.truth.Truth
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.times
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+import com.google.common.truth.Truth.assertThat
+import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage.DE
+import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage.EN
 import io.add.calendar.TEST_CASE_1
 import io.add.calendar.TEST_CASE_2
 import io.add.calendar.TEST_CASE_3
 import io.add.calendar.TEST_CASE_4
+import io.add.calendar.TEST_CASE_5
+import io.add.calendar.getRandomBoolean
 import io.add.calendar.getRandomInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,7 +36,7 @@ import org.junit.Test
 @ExperimentalCoroutinesApi
 class DatetimeInferenceTest {
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
-    private lateinit var mockDelegate: IDatetimeInference
+
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -46,7 +46,6 @@ class DatetimeInferenceTest {
 
     @Before
     fun setup() {
-        mockDelegate = mock()
         Dispatchers.setMain(mainThreadSurrogate)
         context = InstrumentationRegistry.getInstrumentation().targetContext
     }
@@ -71,26 +70,119 @@ class DatetimeInferenceTest {
         launch(Dispatchers.Main) {
             inference = DatetimeInference(context, testCase)
             val result = inference.getResult()
-            Truth.assertThat(result).isNotNull()
+
+            assertThat(result).isNotNull()
             requireNotNull(result)
-            Truth.assertThat(result.get(YEAR)).isEqualTo(1969)
-            Truth.assertThat(result.get(MONTH)).isEqualTo(JUNE)
-            Truth.assertThat(result.get(DAY_OF_MONTH)).isEqualTo(20)
-            Truth.assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
-            Truth.assertThat(result.get(MINUTE)).isEqualTo(17)
+
+            assertThat(result.get(YEAR)).isEqualTo(1969)
+            assertThat(result.get(MONTH)).isEqualTo(JUNE)
+            assertThat(result.get(DAY_OF_MONTH)).isEqualTo(20)
+            assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
+            assertThat(result.get(MINUTE)).isEqualTo(17)
         }.join()
     }
 
     @Test
-    fun shouldDoTranslationBeforeClassification() = runBlocking {
+    fun shouldFindEnglish() = runBlocking {
         launch(Dispatchers.Main) {
-            val case = testCase
-            inference = DatetimeInference(context, case, mockDelegate)
-            whenever(mockDelegate.doClassificationBeforeTranslation((case))).thenReturn(
-                null
-            )
-            inference.getResult()
-            verify(mockDelegate, times(1)).doTranslationBeforeClassification(case)
+            inference = DatetimeInference(context, testCase)
+            inference.findLanguageId(TEST_CASE_1)
+            assertThat(inference.sourceLanguageId).isEqualTo(EN)
+            assertThat(inference.isAlreadyEnglish).isTrue()
+        }.join()
+    }
+
+    @Test
+    fun shouldNotFindLanguageId() = runBlocking {
+        launch(Dispatchers.Main) {
+            inference = DatetimeInference(context, testCase)
+            inference.findLanguageId(TEST_CASE_5, false)
+            assertThat(inference.sourceLanguageId).isEqualTo(UND)
+            assertThat(inference.isAlreadyEnglish).isFalse()
+        }.join()
+    }
+
+    @Test
+    fun shouldAvoidTranslatingWhenTheLanguageIsEnglish() = runBlocking {
+        launch(Dispatchers.Main) {
+            inference = DatetimeInference(context, testCase)
+            inference.findLanguageId(TEST_CASE_1)
+            inference.translate(TEST_CASE_1)
+            assertThat(inference.sourceLanguageId).isNotEqualTo(UND)
+            assertThat(inference.isAlreadyEnglish).isTrue()
+            assertThat(inference.translated).isEqualTo(TEST_CASE_1)
+        }.join()
+    }
+
+
+    @Test
+    fun shouldAvoidTranslatingWhenLanguageCannotBeDetected() = runBlocking {
+        launch(Dispatchers.Main) {
+            inference = DatetimeInference(context, testCase)
+            inference.findLanguageId(TEST_CASE_5, false)
+            inference.translate(TEST_CASE_5)
+            assertThat(inference.sourceLanguageId).isEqualTo(UND)
+            assertThat(inference.isAlreadyEnglish).isFalse()
+            assertThat(inference.translated).isEqualTo(TEST_CASE_5)
+        }.join()
+    }
+
+    @Test
+    fun shouldUseFallbackSupportFindingLanguage() = runBlocking {
+        launch(Dispatchers.Main) {
+            inference = DatetimeInference(context, testCase, "de")
+            inference.findLanguageId(TEST_CASE_5)
+            assertThat(inference.sourceLanguageId).isEqualTo(DE)
+        }.join()
+    }
+
+
+    @Test
+    fun shouldBuildResultNullWhenTheTranslatedIsBad() = runBlocking {
+        launch(Dispatchers.Main) {
+            inference = DatetimeInference(context, testCase)
+            inference.translated = TEST_CASE_5
+            val result = inference.buildResult(TEST_CASE_5, getRandomBoolean())
+            assertThat(result).isNull()
+        }.join()
+    }
+
+    @Test
+    fun shouldBuildResultWithoutTranslation() = runBlocking {
+        launch(Dispatchers.Main) {
+            inference = DatetimeInference(context, testCase)
+            inference.translated = TEST_CASE_1
+
+            val result = inference.buildResult(TEST_CASE_1, false)
+
+            assertThat(inference.sourceLanguageId).isEqualTo(UND)
+            assertThat(inference.isAlreadyEnglish).isFalse()
+
+            requireNotNull(result)
+            assertThat(result.get(YEAR)).isEqualTo(1969)
+            assertThat(result.get(MONTH)).isEqualTo(JUNE)
+            assertThat(result.get(DAY_OF_MONTH)).isEqualTo(20)
+            assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
+            assertThat(result.get(MINUTE)).isEqualTo(17)
+        }.join()
+    }
+
+    @Test
+    fun shouldBuildResultWithTranslation() = runBlocking {
+        launch(Dispatchers.Main) {
+            inference = DatetimeInference(context, testCase, "de")
+
+            val result = inference.buildResult(TEST_CASE_4, true)
+
+            assertThat(inference.sourceLanguageId).isNotEqualTo(DE)
+            assertThat(inference.translated).isEqualTo(TEST_CASE_1)
+
+            requireNotNull(result)
+            assertThat(result.get(YEAR)).isEqualTo(1969)
+            assertThat(result.get(MONTH)).isEqualTo(JUNE)
+            assertThat(result.get(DAY_OF_MONTH)).isEqualTo(20)
+            assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
+            assertThat(result.get(MINUTE)).isEqualTo(17)
         }.join()
     }
 }

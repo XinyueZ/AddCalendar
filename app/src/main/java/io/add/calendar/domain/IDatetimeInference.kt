@@ -17,9 +17,14 @@ interface IDatetimeInference {
     val source: String
 
     /**
+     * The language-id which is detected.
+     */
+    val sourceLanguageId: Int
+
+    /**
      * A translated text which shall be used to build final [Calendar] by [getResult].
      */
-    val translated: String
+    var translated: String
 
     /**
      * Translation to English only when [isAlreadyEnglish] return false.
@@ -52,8 +57,12 @@ interface IDatetimeInference {
 
     /**
      * Find language of [text].
+     * If [supportFallback] is true, the [supportFallbackLanguageIdIfNeeded]
+     * will be used to detect the [source] language.
+     *
+     * [supportFallback] is default true.
      */
-    suspend fun findLanguageId(text: String)
+    suspend fun findLanguageId(text: String, supportFallback: Boolean = true)
 
     /**
      * Provide solution to find language of the [source] when it is impossible to detect
