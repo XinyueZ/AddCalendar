@@ -9,11 +9,23 @@ Just click `+Calendar`.
 
 [![preview](medium/preview.gif)](https://lnkd.in/d2Gys7K)
 
-# TEST
+# TESTs & Support
 
 WIP, run:
 
 `./gradlew connectedCheck --info`
+
+de os -> de✅
+de os -> en✅
+de os -> zh✅
+
+en os -> en✅
+en os -> de💨
+en os -> zh✅
+
+zh os -> zh✅
+zh os -> en✅
+zh os -> de💨
 
 # klint support
 

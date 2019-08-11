@@ -2,6 +2,7 @@ package io.add.calendar.viewmodels
 
 import android.app.Application
 import androidx.databinding.ObservableBoolean
+import androidx.databinding.ObservableField
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,6 +11,7 @@ import com.google.firebase.ml.common.modeldownload.FirebaseModelDownloadConditio
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateModelManager
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateRemoteModel
+import io.add.calendar.BuildConfig
 import io.add.calendar.utils.Event
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,8 @@ import kotlinx.coroutines.withContext
 
 class SetupViewModel(app: Application) : AndroidViewModel(app) {
     val setupInProgress = ObservableBoolean(false)
+    val appVersion =
+        ObservableField("v${BuildConfig.VERSION_NAME}+${BuildConfig.VERSION_CODE}")
 
     private val _onSetupCompleted = MutableLiveData<Event<Unit>>()
     val onSetupCompleted: LiveData<Event<Unit>> = _onSetupCompleted

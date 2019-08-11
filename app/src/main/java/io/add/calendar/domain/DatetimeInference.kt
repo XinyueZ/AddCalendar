@@ -2,6 +2,7 @@ package io.add.calendar.domain
 
 import android.content.Context
 import android.icu.util.Calendar
+import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.os.LocaleListCompat
 import androidx.textclassifier.TextClassification
@@ -16,7 +17,6 @@ import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguag
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslator
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslatorOptions
 import java.util.Date
-import java.util.Locale
 
 const val UND = -1
 
@@ -28,15 +28,20 @@ typealias FallbackLanguageProvider = () -> String
 /**
  * [DatetimeInference] gives English based data&time format inference on [_source].
  * [fallbackLanguage] is a factory which gives chance to fallback language-id on [_source].
- * Default of [fallbackLanguage] is the language of the user's local.
+ * Default of [fallbackLanguage] is the language of the user's sim provider.
  */
 open class DatetimeInference(
     context: Context,
     _source: String,
-    private val fallbackLanguage: FallbackLanguageProvider = { Locale.getDefault().language }
+    private val fallbackLanguage: FallbackLanguageProvider = {
+        val telephonyManager =
+            context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        telephonyManager.simCountryIso
+    }
 ) : IDatetimeInference {
 
-    private val _adjustedSource: String = _source.trim()
+    private val _adjustedSource: String = _source
+        .trim(',', '#', ';', ' ', '\t', '\n')
         .replace("\n", "")
         .replace("\t", "")
     override val source: String = _adjustedSource
@@ -192,6 +197,7 @@ open class DatetimeInference(
                     }
                     @Suppress("DEPRECATION")
                     timeInMillis = Date.parse(translated)
+                    // timeInMillis = valueOf(LocalDateTime.parse(translated,    DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(Locale.ENGLISH)).toString()).toString().toLong()
                 }
             } else null
         } catch (ex: Exception) {

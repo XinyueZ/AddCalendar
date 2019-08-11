@@ -3,10 +3,12 @@ package io.add.calendar.domain
 import android.content.Context
 import android.icu.util.Calendar.DAY_OF_MONTH
 import android.icu.util.Calendar.HOUR_OF_DAY
+import android.icu.util.Calendar.JULY
 import android.icu.util.Calendar.JUNE
 import android.icu.util.Calendar.MINUTE
 import android.icu.util.Calendar.MONTH
 import android.icu.util.Calendar.YEAR
+import android.telephony.TelephonyManager
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
@@ -17,8 +19,10 @@ import io.add.calendar.TEST_CASE_2
 import io.add.calendar.TEST_CASE_3
 import io.add.calendar.TEST_CASE_4
 import io.add.calendar.TEST_CASE_5
+import io.add.calendar.TEST_CASE_6
 import io.add.calendar.TEST_CASE_BAD
 import io.add.calendar.TEST_CASE_FLAG
+import io.add.calendar.TEST_CASE_TRIM
 import io.add.calendar.getRandomBoolean
 import io.add.calendar.getRandomInt
 import kotlinx.coroutines.Dispatchers
@@ -80,6 +84,59 @@ class DatetimeInferenceTest {
             assertThat(result.get(DAY_OF_MONTH)).isEqualTo(20)
             assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
             assertThat(result.get(MINUTE)).isEqualTo(17)
+        }.join()
+    }
+
+    @Test
+    fun shouldGiveFallbackSupportLanguageWithSimCountryIso() = runBlocking {
+        launch(Dispatchers.Main) {
+            inference = DatetimeInference(context, TEST_CASE_6) {
+                val telephonyManager =
+                    context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+                telephonyManager.simCountryIso
+            }
+            var result = inference.getResult()
+
+            assertThat(result).isNotNull()
+            requireNotNull(result)
+
+            assertThat(result.get(YEAR)).isEqualTo(1969)
+            assertThat(result.get(MONTH)).isEqualTo(JULY)
+            assertThat(result.get(DAY_OF_MONTH)).isEqualTo(20)
+            assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
+            assertThat(result.get(MINUTE)).isEqualTo(17)
+
+//            inference = DatetimeInference(context, TEST_CASE_7) {
+//                val telephonyManager =
+//                    context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+//                telephonyManager.simCountryIso
+//            }
+//            result = inference.getResult()
+//
+//            assertThat(result).isNotNull()
+//            requireNotNull(result)
+//
+//            assertThat(result.get(YEAR)).isEqualTo(1969)
+//            assertThat(result.get(MONTH)).isEqualTo(OCTOBER)
+//            assertThat(result.get(DAY_OF_MONTH)).isEqualTo(20)
+//            assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
+//            assertThat(result.get(MINUTE)).isEqualTo(17)
+
+//            inference = DatetimeInference(context, TEST_CASE_8) {
+//                val telephonyManager =
+//                    context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+//                telephonyManager.simCountryIso
+//            }
+//            result = inference.getResult()
+//
+//            assertThat(result).isNotNull()
+//            requireNotNull(result)
+//
+//            assertThat(result.get(YEAR)).isEqualTo(1969)
+//            assertThat(result.get(MONTH)).isEqualTo(JANUARY)
+//            assertThat(result.get(DAY_OF_MONTH)).isEqualTo(10)
+//            assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
+//            assertThat(result.get(MINUTE)).isEqualTo(17)
         }.join()
     }
 
@@ -192,5 +249,11 @@ class DatetimeInferenceTest {
             assertThat(result.get(HOUR_OF_DAY)).isEqualTo(20)
             assertThat(result.get(MINUTE)).isEqualTo(17)
         }.join()
+    }
+
+    @Test
+    fun shouldTrimSource() {
+        inference = DatetimeInference(context, TEST_CASE_TRIM)
+        assertThat(inference.source).isEqualTo("abc")
     }
 }

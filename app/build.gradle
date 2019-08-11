@@ -113,12 +113,12 @@ dependencies {
      * MOCK
      */
     testImplementation "org.mockito:mockito-core:$mockito"
-    testImplementation "org.mockito:mockito-inline:$mockito"
+//    testImplementation "org.mockito:mockito-inline:$mockito"
     testImplementation "org.mockito:mockito-android:$mockito"
     testImplementation "com.nhaarman:mockito-kotlin:$mockitoKotlin"
     testImplementation "net.bytebuddy:byte-buddy:$byteBuddy"
     androidTestImplementation "org.mockito:mockito-core:$mockito"
-    androidTestImplementation "org.mockito:mockito-inline:$mockito"
+//    androidTestImplementation "org.mockito:mockito-inline:$mockito"
     androidTestImplementation "org.mockito:mockito-android:$mockito"
     androidTestImplementation "com.nhaarman:mockito-kotlin:$mockitoKotlin"
     androidTestImplementation "net.bytebuddy:byte-buddy:$byteBuddy"
