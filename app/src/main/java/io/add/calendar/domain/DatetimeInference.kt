@@ -20,10 +20,12 @@ import java.util.Locale
 
 const val UND = -1
 
+typealias FallbackLanguageProvider = () -> String
+
 open class DatetimeInference(
     context: Context,
     _source: String,
-    private val fallbackLanguage: String = Locale.getDefault().language
+    private val fallbackLanguage: FallbackLanguageProvider = { Locale.getDefault().language }
 ) : IDatetimeInference {
 
     private val _adjustedSource: String = _source.trim()
@@ -112,7 +114,7 @@ open class DatetimeInference(
     override suspend fun supportFallbackLanguageIdIfNeeded() {
         if (sourceLanguageId == UND) {
             sourceLanguageId =
-                FirebaseTranslateLanguage.languageForLanguageCode(fallbackLanguage) ?: UND
+                FirebaseTranslateLanguage.languageForLanguageCode(fallbackLanguage()) ?: UND
 
             Log.d("+Calendar", "classification fallback lang: $fallbackLanguage")
             Log.d("+Calendar", "classification fallback lang-id: $sourceLanguageId")

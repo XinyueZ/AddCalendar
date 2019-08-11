@@ -104,6 +104,7 @@ class DatetimeInferenceTest {
 
     @Test
     fun shouldAvoidTranslatingWhenTheLanguageIsEnglish() = runBlocking {
+        //TODO This test is not sufficient yet.
         launch(Dispatchers.Main) {
             inference = DatetimeInference(context, testCase)
             inference.findLanguageId(TEST_CASE_1)
@@ -128,9 +129,11 @@ class DatetimeInferenceTest {
     }
 
     @Test
-    fun shouldUseFallbackSupportFindingLanguage() = runBlocking {
+    fun shouldUseFallbackSupportToFindLanguage() = runBlocking {
         launch(Dispatchers.Main) {
-            inference = DatetimeInference(context, testCase, "de")
+            inference = DatetimeInference(context, testCase) { "de" }
+            inference.findLanguageId(TEST_CASE_5, false)
+            assertThat(inference.sourceLanguageId).isEqualTo(UND)
             inference.findLanguageId(TEST_CASE_5)
             assertThat(inference.sourceLanguageId).isEqualTo(DE)
         }.join()
@@ -170,7 +173,7 @@ class DatetimeInferenceTest {
     @Test
     fun shouldBuildResultWithTranslation() = runBlocking {
         launch(Dispatchers.Main) {
-            inference = DatetimeInference(context, testCase, "de")
+            inference = DatetimeInference(context, testCase) { "de" }
 
             val result = inference.buildResult(TEST_CASE_4, true)
 
