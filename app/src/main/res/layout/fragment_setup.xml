@@ -97,6 +97,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|end"
+            android:layout_marginEnd="5dp"
             android:text="@{viewModel.appVersion}"
             tools:text="v0.0.x+y" />
     </FrameLayout>

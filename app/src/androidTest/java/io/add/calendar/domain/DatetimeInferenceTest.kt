@@ -8,7 +8,6 @@ import android.icu.util.Calendar.JUNE
 import android.icu.util.Calendar.MINUTE
 import android.icu.util.Calendar.MONTH
 import android.icu.util.Calendar.YEAR
-import android.telephony.TelephonyManager
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
@@ -91,9 +90,7 @@ class DatetimeInferenceTest {
     fun shouldGiveFallbackSupportLanguageWithSimCountryIso() = runBlocking {
         launch(Dispatchers.Main) {
             inference = DatetimeInference(context, TEST_CASE_6) {
-                val telephonyManager =
-                    context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-                telephonyManager.simCountryIso
+                "de"
             }
             var result = inference.getResult()
 
