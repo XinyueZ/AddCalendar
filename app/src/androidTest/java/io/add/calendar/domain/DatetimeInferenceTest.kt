@@ -17,6 +17,7 @@ import io.add.calendar.TEST_CASE_2
 import io.add.calendar.TEST_CASE_3
 import io.add.calendar.TEST_CASE_4
 import io.add.calendar.TEST_CASE_5
+import io.add.calendar.TEST_CASE_BAD
 import io.add.calendar.TEST_CASE_FLAG
 import io.add.calendar.getRandomBoolean
 import io.add.calendar.getRandomInt
@@ -57,11 +58,12 @@ class DatetimeInferenceTest {
     }
 
     private val testCase: String
-        get() = when (getRandomInt(1, 5)) {
+        get() = when (getRandomInt(1, 6)) {
             1 -> TEST_CASE_1
             2 -> TEST_CASE_2
             3 -> TEST_CASE_3
-            else -> TEST_CASE_4
+            4 -> TEST_CASE_4
+            else -> TEST_CASE_5
         }
 
     @Test
@@ -95,7 +97,7 @@ class DatetimeInferenceTest {
     fun shouldNotFindLanguageId() = runBlocking {
         launch(Dispatchers.Main) {
             inference = DatetimeInference(context, testCase)
-            inference.findLanguageId(TEST_CASE_5, false)
+            inference.findLanguageId(TEST_CASE_BAD, false)
             assertThat(inference.sourceLanguageId).isEqualTo(UND)
             assertThat(inference.isAlreadyEnglish).isFalse()
         }.join()
@@ -124,11 +126,11 @@ class DatetimeInferenceTest {
     fun shouldAvoidTranslatingWhenLanguageCannotBeDetected() = runBlocking {
         launch(Dispatchers.Main) {
             inference = DatetimeInference(context, testCase)
-            inference.findLanguageId(TEST_CASE_5, false)
-            inference.translate(TEST_CASE_5)
+            inference.findLanguageId(TEST_CASE_BAD, false)
+            inference.translate(TEST_CASE_BAD)
             assertThat(inference.sourceLanguageId).isEqualTo(UND)
             assertThat(inference.isAlreadyEnglish).isFalse()
-            assertThat(inference.translated).isEqualTo(TEST_CASE_5)
+            assertThat(inference.translated).isEqualTo(TEST_CASE_BAD)
         }.join()
     }
 
@@ -136,9 +138,9 @@ class DatetimeInferenceTest {
     fun shouldUseFallbackSupportToFindLanguage() = runBlocking {
         launch(Dispatchers.Main) {
             inference = DatetimeInference(context, testCase) { "de" }
-            inference.findLanguageId(TEST_CASE_5, false)
+            inference.findLanguageId(TEST_CASE_BAD, false)
             assertThat(inference.sourceLanguageId).isEqualTo(UND)
-            inference.findLanguageId(TEST_CASE_5)
+            inference.findLanguageId(TEST_CASE_BAD)
             assertThat(inference.sourceLanguageId).isEqualTo(DE)
         }.join()
     }
@@ -147,8 +149,8 @@ class DatetimeInferenceTest {
     fun shouldBuildResultNullWhenTheTranslatedIsBad() = runBlocking {
         launch(Dispatchers.Main) {
             inference = DatetimeInference(context, testCase)
-            inference.translated = TEST_CASE_5
-            val result = inference.buildResult(TEST_CASE_5, getRandomBoolean())
+            inference.translated = TEST_CASE_BAD
+            val result = inference.buildResult(TEST_CASE_BAD, getRandomBoolean())
             assertThat(result).isNull()
         }.join()
     }
