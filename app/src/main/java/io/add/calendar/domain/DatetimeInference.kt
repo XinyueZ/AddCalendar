@@ -20,8 +20,16 @@ import java.util.Locale
 
 const val UND = -1
 
+/**
+ * Factory gives fallback to identify the language to inference.
+ */
 typealias FallbackLanguageProvider = () -> String
 
+/**
+ * [DatetimeInference] gives English based data&time format inference on [_source].
+ * [fallbackLanguage] is a factory which gives chance to fallback language-id on [_source].
+ * Default of [fallbackLanguage] is the language of the user's local.
+ */
 open class DatetimeInference(
     context: Context,
     _source: String,
