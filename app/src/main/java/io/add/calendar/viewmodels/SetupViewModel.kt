@@ -10,18 +10,14 @@ import com.google.firebase.ml.common.modeldownload.FirebaseModelDownloadConditio
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateModelManager
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateRemoteModel
-import io.add.calendar.R
 import io.add.calendar.utils.Event
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
 
 class SetupViewModel(app: Application) : AndroidViewModel(app) {
     val setupInProgress = ObservableBoolean(false)
-
-    private val _echo = MutableLiveData<Event<Int>>()
-    val echo: LiveData<Event<Int>> = _echo
 
     private val _onSetupCompleted = MutableLiveData<Event<Unit>>()
     val onSetupCompleted: LiveData<Event<Unit>> = _onSetupCompleted
@@ -30,7 +26,6 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     val onShareApp: LiveData<Event<String>> = _onShareApp
 
     fun setup() {
-        _echo.value = Event(R.string.setup_in_progress_echo)
         if (setupInProgress.get()) return // Ignore any intercept while setup is in progress.
 
         setupStart()
@@ -51,7 +46,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         } else {
             // These languages can be downloaded under some hardware, environment conditions.
             FirebaseTranslateRemoteModel.Builder(langId).setDownloadConditions(
-                FirebaseModelDownloadConditions.Builder().requireDeviceIdle().build()
+                FirebaseModelDownloadConditions.Builder().requireWifi().build()
             ).build()
         }
 
@@ -78,7 +73,7 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
             )
             downloadModels(
                 false,
-                "fr", "zh", "de"
+                "de"
             )
             withContext(Dispatchers.Main) {
                 setupCompleted()
@@ -87,7 +82,6 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun setupStart() {
-        _echo.value = Event(R.string.setup_in_progress_echo)
         setupInProgress.set(true)
     }
 

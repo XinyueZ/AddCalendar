@@ -12,79 +12,53 @@ import com.google.firebase.ml.naturallanguage.FirebaseNaturalLanguage
 import com.google.firebase.ml.naturallanguage.languageid.FirebaseLanguageIdentification
 import com.google.firebase.ml.naturallanguage.languageid.IdentifiedLanguage
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage
+import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage.EN
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslator
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslatorOptions
 import java.util.Date
 import java.util.Locale
 
-/**
- * An inference of different format of date-time to a unify format [Calendar].
- * This implementation is a English based format.
- *
- * 1. Find the language of date-time.
- * 1.1 When the language cannot be detected, use system language.
- * 2. Translate to English.
- * 3. Based on English format to complete inference.
- */
-interface IDatetimeInference {
-    /**
-     * The source date-time for inference.
-     */
-    val source: String
-    /**
-     * The translated date-time based on English.
-     */
-    val translated: String
-
-    /**
-     * Get result of inference.
-     */
-    suspend fun getResult(): Calendar?
-
-    /**
-     * Find language of source.
-     */
-    suspend fun findLanguageId()
-
-    /**
-     * Provide solution to find language of the [source] when it is impossible to detect
-     * language of [source].
-     */
-    suspend fun supportFallbackLanguageIdIfNeeded()
-
-    /**
-     * Translate [source] to [translated] in English.
-     */
-    suspend fun translate()
-
-    /**
-     * Build the result [Calendar] object based on English.
-     */
-    suspend fun buildResult(): Calendar?
-
-    fun release()
-}
-
 const val UND = -1
 
-class DatetimeInference(context: Context, private val _source: String) : IDatetimeInference {
+/**
+ * Factory gives fallback to identify the language to inference.
+ */
+typealias FallbackLanguageProvider = () -> String
 
-    private var _translated: String = ""
+/**
+ * [DatetimeInference] gives English based data&time format inference on [_source].
+ * [fallbackLanguage] is a factory which gives chance to fallback language-id on [_source].
+ * Default of [fallbackLanguage] is the language of the user's local.
+ */
+open class DatetimeInference(
+    context: Context,
+    _source: String,
+    private val fallbackLanguage: FallbackLanguageProvider = { Locale.getDefault().language }
+) : IDatetimeInference {
 
-    override val source: String
-        get() = _source
+    private val _adjustedSource: String = _source.trim()
+        .replace("\n", "")
+        .replace("\t", "")
+    override val source: String = _adjustedSource
 
+    private var _sourceLanguageId: Int = UND
+    override var sourceLanguageId: Int
+        get() = _sourceLanguageId
+        set(value) {
+            _sourceLanguageId = value
+        }
+
+    private lateinit var _translated: String
     override var translated: String
         get() = _translated
         set(value) {
             _translated = value.replace("at", "") // TODO looking for nice solution, see #10
         }
 
+    override val isAlreadyEnglish: Boolean get() = sourceLanguageId == EN
+
     private val textClassificationManager: TextClassificationManager =
         TextClassificationManager.of(context)
-    private val classifier: TextClassifier = textClassificationManager.textClassifier
-
-    private var sourceLanguageId: Int = UND
 
     private val languageIdentifier: FirebaseLanguageIdentification by lazy {
         FirebaseNaturalLanguage.getInstance().languageIdentification
@@ -93,22 +67,41 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
     private val translator: FirebaseTranslator by lazy {
         val options = FirebaseTranslatorOptions.Builder()
             .setSourceLanguage(sourceLanguageId)
-            .setTargetLanguage(FirebaseTranslateLanguage.EN)
+            .setTargetLanguage(EN)
             .build()
         FirebaseNaturalLanguage.getInstance().getTranslator(options)
     }
 
-    override suspend fun getResult(): Calendar? {
-        findLanguageId()
-        translate()
-        return buildResult()
+    override fun release() {
+        languageIdentifier.close()
+        translator.close()
     }
 
-    override suspend fun findLanguageId() {
-        Log.d("+Calendar", "classification finding lang-id: $source")
+    override suspend fun getResult(): Calendar? =
+        doClassificationBeforeTranslation(source)
+            ?: doTranslationBeforeClassification(source)
+
+    override suspend fun doTranslationBeforeClassification(text: String): Calendar? {
+        findLanguageId(text)
+        translate(text)
+        /**
+         * Pass translated [text], no more translation more in the [buildResult].
+         */
+        return buildResult(translated, false)
+    }
+
+    override suspend fun doClassificationBeforeTranslation(text: String): Calendar? {
+        /**
+         * The text will be passed, let [buildResult] do translation before creating [Calendar].
+         */
+        return buildResult(text, true)
+    }
+
+    override suspend fun findLanguageId(text: String, supportFallback: Boolean) {
+        Log.d("+Calendar", "classification finding lang-id on: $text")
 
         val searchingLanguageId: Task<MutableList<IdentifiedLanguage>> =
-            languageIdentifier.identifyPossibleLanguages(source)
+            languageIdentifier.identifyPossibleLanguages(text)
         while (!searchingLanguageId.isComplete) continue
 
         searchingLanguageId.result?.let { langCodeList ->
@@ -120,90 +113,89 @@ class DatetimeInference(context: Context, private val _source: String) : IDateti
             sourceLanguageId = UND
         }
 
-        supportFallbackLanguageIdIfNeeded()
-
-        Log.d("+Calendar", "classification lang-id: $sourceLanguageId")
+        if (supportFallback) {
+            supportFallbackLanguageIdIfNeeded()
+        }
     }
 
     override suspend fun supportFallbackLanguageIdIfNeeded() {
         if (sourceLanguageId == UND) {
-            val fallbackLang = Locale.getDefault().language
             sourceLanguageId =
-                FirebaseTranslateLanguage.languageForLanguageCode(fallbackLang) ?: UND
+                FirebaseTranslateLanguage.languageForLanguageCode(fallbackLanguage()) ?: UND
 
-            Log.d("+Calendar", "classification fallback lang: $fallbackLang")
-        }
+            Log.d("+Calendar", "classification fallback lang: $fallbackLanguage")
+            Log.d("+Calendar", "classification fallback lang-id: $sourceLanguageId")
+        } else Log.d("+Calendar", "classification lang-id: $sourceLanguageId")
     }
 
-    override suspend fun translate() {
-        Log.d("+Calendar", "classification translating: $source")
+    override suspend fun translate(text: String) {
+        if (sourceLanguageId == UND) {
+            Log.d(
+                "+Calendar",
+                "classification avoid translating: $text, cannot detect language"
+            )
+            translated = text
+            return
+        }
+
+        if (isAlreadyEnglish) {
+            Log.d(
+                "+Calendar",
+                "classification avoid translating: $text, detect English: $isAlreadyEnglish"
+            )
+            translated = text
+            return
+        }
+
+        Log.d("+Calendar", "classification translating: $text")
 
         val download = translator.downloadModelIfNeeded()
         while (!download.isComplete) continue
 
-        val translating = translator.translate(source)
+        val translating = translator.translate(text)
         while (!translating.isComplete) continue
 
-        translated = translating.result ?: source
+        translated = translating.result ?: text
 
         Log.d("+Calendar", "classification translated: $translated")
     }
 
-    override suspend fun buildResult(): Calendar? {
-        val calendar = Calendar.getInstance()
+    override fun createTextClassification(text: String): TextClassification {
+        val classifier: TextClassifier = textClassificationManager.textClassifier
         val builder: TextClassification.Request.Builder =
             TextClassification.Request
-                .Builder(translated, 0, translated.length)
+                .Builder(text, 0, text.length)
                 .setDefaultLocales(
                     LocaleListCompat.getAdjustedDefault()
                 )
 
-        val classification: TextClassification = classifier.classifyText(builder.build())
-        var entity: String
-        var score: Float
+        return classifier.classifyText(builder.build())
+    }
 
-        if (classification.entityTypeCount > 0) {
-            /**
-             * Suppose the datetime entity should have highest score.
-             */
-            entity = classification.getEntityType(0)
-            score = classification.getConfidenceScore(entity)
+    override suspend fun buildResult(text: String, needTranslation: Boolean): Calendar? {
+        try {
+            val calendar = Calendar.getInstance()
+            val classification: TextClassification = createTextClassification(text)
+
+            if (classification.entityTypeCount < 1) return null
+
+            val entity: String = classification.getEntityType(0)
+            val score: Float = classification.getConfidenceScore(entity)
             Log.d("+Calendar", "classification Entity: $entity")
             Log.d("+Calendar", "classification Score: $score")
-            if (entity == TextClassifier.TYPE_DATE || entity == TextClassifier.TYPE_DATE_TIME) {
+            return if (entity == TextClassifier.TYPE_DATE || entity == TextClassifier.TYPE_DATE_TIME) {
                 calendar.apply {
+                    if (needTranslation) {
+                        Log.d("+Calendar", "classification need translating: $needTranslation")
+                        findLanguageId(text)
+                        translate(text)
+                    }
                     @Suppress("DEPRECATION")
                     timeInMillis = Date.parse(translated)
                 }
-                return calendar
-            } else {
-                /**
-                 * Looks that the highest score entity is not a datetime, then loop on the whole
-                 * list of entity to find one.
-                 */
-                Log.d("+Calendar", "classification max entity is not datetime, looping to search")
-                (0 until classification.entityTypeCount).forEach {
-                    entity = classification.getEntityType(it)
-                    score = classification.getConfidenceScore(entity)
-                    Log.d("+Calendar", "classification Entity: $entity")
-                    Log.d("+Calendar", "classification Score: $score")
-                    if (entity == TextClassifier.TYPE_DATE || entity == TextClassifier.TYPE_DATE_TIME) {
-                        calendar.apply {
-                            @Suppress("DEPRECATION")
-                            timeInMillis = Date.parse(translated)
-                        }
-                        return calendar
-                    }
-                }
-                return null
-            }
-        } else {
+            } else null
+        } catch (ex: Exception) {
             return null
         }
-    }
-
-    override fun release() {
-        languageIdentifier.close()
-        translator.close()
     }
 }
