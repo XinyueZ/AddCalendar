@@ -52,7 +52,6 @@ open class DatetimeInference(
     private val textClassificationManager: TextClassificationManager =
         TextClassificationManager.of(context)
 
-
     private val languageIdentifier: FirebaseLanguageIdentification by lazy {
         FirebaseNaturalLanguage.getInstance().languageIdentification
     }

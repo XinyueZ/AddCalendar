@@ -17,6 +17,7 @@ import io.add.calendar.TEST_CASE_2
 import io.add.calendar.TEST_CASE_3
 import io.add.calendar.TEST_CASE_4
 import io.add.calendar.TEST_CASE_5
+import io.add.calendar.TEST_CASE_FLAG
 import io.add.calendar.getRandomBoolean
 import io.add.calendar.getRandomInt
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +37,6 @@ import org.junit.Test
 @ExperimentalCoroutinesApi
 class DatetimeInferenceTest {
     private val mainThreadSurrogate = newSingleThreadContext("UI thread")
-
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -63,7 +63,6 @@ class DatetimeInferenceTest {
             3 -> TEST_CASE_3
             else -> TEST_CASE_4
         }
-
 
     @Test
     fun shouldGiveCalendarAsResultWithInputDateTime() = runBlocking {
@@ -104,17 +103,22 @@ class DatetimeInferenceTest {
 
     @Test
     fun shouldAvoidTranslatingWhenTheLanguageIsEnglish() = runBlocking {
-        //TODO This test is not sufficient yet.
         launch(Dispatchers.Main) {
             inference = DatetimeInference(context, testCase)
             inference.findLanguageId(TEST_CASE_1)
             inference.translate(TEST_CASE_1)
             assertThat(inference.sourceLanguageId).isNotEqualTo(UND)
             assertThat(inference.isAlreadyEnglish).isTrue()
-            assertThat(inference.translated).isEqualTo(TEST_CASE_1)
+            /**
+             * Because is already identified as English,
+             * any language can avoid being translated.
+             *
+             * Only for test purpose.
+             */
+            inference.translate(TEST_CASE_FLAG)
+            assertThat(inference.translated).isEqualTo(TEST_CASE_FLAG)
         }.join()
     }
-
 
     @Test
     fun shouldAvoidTranslatingWhenLanguageCannotBeDetected() = runBlocking {
@@ -138,7 +142,6 @@ class DatetimeInferenceTest {
             assertThat(inference.sourceLanguageId).isEqualTo(DE)
         }.join()
     }
-
 
     @Test
     fun shouldBuildResultNullWhenTheTranslatedIsBad() = runBlocking {
