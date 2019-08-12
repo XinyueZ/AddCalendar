@@ -82,9 +82,9 @@ dependencies {
     /**
      * Firebase ML Kit
      */
-    implementation 'com.google.firebase:firebase-ml-natural-language:20.0.2'
-    implementation 'com.google.firebase:firebase-ml-natural-language-language-id-model:20.0.2'
-    implementation 'com.google.firebase:firebase-ml-natural-language-translate-model:20.0.2'
+    implementation 'com.google.firebase:firebase-ml-natural-language:21.0.0'
+    implementation 'com.google.firebase:firebase-ml-natural-language-language-id-model:20.0.3'
+    implementation 'com.google.firebase:firebase-ml-natural-language-translate-model:20.0.3'
     /**
      * Design
      */
@@ -93,6 +93,7 @@ dependencies {
      * TESTs
      */
     testImplementation "junit:junit:4.12"
+    testImplementation "androidx.arch.core:core-testing:2.0.1"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
     testImplementation("com.google.truth:truth:$truth") {
         exclude group: 'com.google.guava', module: 'guava'
@@ -112,12 +113,16 @@ dependencies {
     /**
      * MOCK
      */
-    testImplementation "org.mockito:mockito-core:$mockito"
-//    testImplementation "org.mockito:mockito-inline:$mockito"
+    testImplementation ("org.mockito:mockito-core:$mockito") {
+        exclude group: 'net.bytebuddy'
+    }
+    testImplementation "org.mockito:mockito-inline:$mockito"
     testImplementation "org.mockito:mockito-android:$mockito"
     testImplementation "com.nhaarman:mockito-kotlin:$mockitoKotlin"
     testImplementation "net.bytebuddy:byte-buddy:$byteBuddy"
-    androidTestImplementation "org.mockito:mockito-core:$mockito"
+    androidTestImplementation ("org.mockito:mockito-core:$mockito"){
+        exclude group: 'net.bytebuddy'
+    }
 //    androidTestImplementation "org.mockito:mockito-inline:$mockito"
     androidTestImplementation "org.mockito:mockito-android:$mockito"
     androidTestImplementation "com.nhaarman:mockito-kotlin:$mockitoKotlin"

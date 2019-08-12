@@ -13,7 +13,7 @@ Just click `+Calendar`.
 
 WIP, run:
 
-`./gradlew connectedCheck --info`
+`./gradlew clean connectedCheck --info`
 
 de os -> de✅
 de os -> en✅
