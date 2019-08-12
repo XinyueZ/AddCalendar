@@ -9,8 +9,8 @@ import io.add.calendar.utils.Event
 
 interface IAppStartChecker {
     val navigateToAppSetup: LiveData<Event<Unit>>
-    fun gotoAppSetup()
     var isFirstLaunched: Boolean
+    fun gotoAppSetup()
 }
 
 const val IS_FIRST_LAUNCHED = "io.add.calendar.domain.AppStartChecker.IS_FIRST_LAUNCHED"
