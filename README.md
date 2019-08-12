@@ -13,7 +13,11 @@ Just click `+Calendar`.
 
 WIP, run:
 
-`./gradlew connectedCheck --info`
+`./gradlew clean connectedCheck --info`
+
+RELEASE, run:
+
+`./gradlew clean connectedCheck assembleRelease --info`
 
 de os -> de✅
 de os -> en✅

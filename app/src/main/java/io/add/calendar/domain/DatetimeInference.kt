@@ -30,7 +30,7 @@ typealias FallbackLanguageProvider = () -> String
  * [fallbackLanguage] is a factory which gives chance to fallback language-id on [_source].
  * Default of [fallbackLanguage] is the language of the user's sim provider.
  */
-open class DatetimeInference(
+class DatetimeInference(
     context: Context,
     _source: String,
     private val fallbackLanguage: FallbackLanguageProvider = {

@@ -7,18 +7,20 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.ml.common.modeldownload.FirebaseModelDownloadConditions
-import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguage
-import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateModelManager
-import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateRemoteModel
 import io.add.calendar.BuildConfig
+import io.add.calendar.domain.ISetup
 import io.add.calendar.utils.Event
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SetupViewModel(app: Application) : AndroidViewModel(app) {
+class SetupViewModel(
+    app: Application,
+    delegate: ISetup
+) : AndroidViewModel(app),
+    ISetup by delegate {
     val setupInProgress = ObservableBoolean(false)
     val appVersion =
         ObservableField("v${BuildConfig.VERSION_NAME}+${BuildConfig.VERSION_CODE}")
@@ -29,60 +31,36 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
     private val _onShareApp = MutableLiveData<Event<String>>()
     val onShareApp: LiveData<Event<String>> = _onShareApp
 
-    fun setup() {
-        if (setupInProgress.get()) return // Ignore any intercept while setup is in progress.
+    private lateinit var setupJob: Job
+    /**
+     * Return the [Job] of setup process.
+     */
+    fun setup(): Job {
+        if (setupInProgress.get()) {
+            // Ignore any intercept while setup is in progress.
+            return setupJob
+        }
 
         setupStart()
-        getModels()
+        fetchModels()
+        return setupJob
     }
 
     /**
      * Download language model which the device's setting.
      */
-    private fun getModels() {
-
-        fun createTranslateRemoteModel(
-            forceDownload: Boolean,
-            langId: Int
-        ): FirebaseTranslateRemoteModel = if (forceDownload) {
-            // These languages must be downloaded.
-            FirebaseTranslateRemoteModel.Builder(langId).build()
-        } else {
-            // These languages can be downloaded under some hardware, environment conditions.
-            FirebaseTranslateRemoteModel.Builder(langId).setDownloadConditions(
-                FirebaseModelDownloadConditions.Builder().requireWifi().build()
-            ).build()
-        }
-
-        fun downloadModels(forceDownload: Boolean, vararg langNames: String) {
-            langNames.forEach { langName ->
-                val langId =
-                    FirebaseTranslateLanguage.languageForLanguageCode(langName) ?: -1
-                if (langId > 0) {
-                    val langModel: FirebaseTranslateRemoteModel =
-                        createTranslateRemoteModel(forceDownload, langId)
-                    val download =
-                        FirebaseTranslateModelManager.getInstance()
-                            .downloadRemoteModelIfNeeded(langModel)
-                    while (!download.isComplete) continue
-                }
-            }
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            downloadModels(
-                true,
-                Locale.getDefault().language,
-                "en"
-            )
-            downloadModels(
-                false,
-                "de"
-            )
+    private fun fetchModels() {
+        setupJob = viewModelScope.launch(Dispatchers.IO) {
+            getModels()
             withContext(Dispatchers.Main) {
                 setupCompleted()
             }
         }
+    }
+
+    override fun onCleared() {
+        viewModelScope.cancel()
+        super.onCleared()
     }
 
     private fun setupStart() {
@@ -98,63 +76,3 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
         _onShareApp.value = Event(shareText)
     }
 }
-
-// "af",
-// "ar",
-// "be",
-// "bg",
-// "bn",
-// "ca",
-// "cs",
-// "cy",
-// "da",
-// "de",
-// "el",
-// "en",
-// "eo",
-// "es",
-// "et",
-// "fa",
-// "fi",
-// "fr",
-// "ga",
-// "gl",
-// "gu",
-// "he",
-// "hi",
-// "hr",
-// "ht",
-// "hu",
-// "id",
-// "is",
-// "it",
-// "ja",
-// "ka",
-// "kn",
-// "ko",
-// "lt",
-// "lv",
-// "mk",
-// "mr",
-// "ms",
-// "mt",
-// "nl",
-// "no",
-// "pl",
-// "pt",
-// "ro",
-// "ru",
-// "sk",
-// "sl",
-// "sq",
-// "sv",
-// "sw",
-// "ta",
-// "te",
-// "th",
-// "tl",
-// "tr",
-// "uk",
-// "ur",
-// "vi",
-// "zh"
