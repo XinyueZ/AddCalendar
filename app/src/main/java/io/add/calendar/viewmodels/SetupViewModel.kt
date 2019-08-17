@@ -13,10 +13,11 @@ import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateModelMa
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateRemoteModel
 import io.add.calendar.BuildConfig
 import io.add.calendar.utils.Event
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class SetupViewModel(app: Application) : AndroidViewModel(app) {
     val setupInProgress = ObservableBoolean(false)
@@ -83,6 +84,11 @@ class SetupViewModel(app: Application) : AndroidViewModel(app) {
                 setupCompleted()
             }
         }
+    }
+
+    override fun onCleared() {
+        viewModelScope.cancel()
+        super.onCleared()
     }
 
     private fun setupStart() {
