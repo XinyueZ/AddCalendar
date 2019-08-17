@@ -22,7 +22,10 @@ class Setup : AbstractSetup() {
                     FirebaseTranslateModelManager.getInstance()
                         .downloadRemoteModelIfNeeded(langModel)
                 while (!download.isComplete) continue
-                Log.d("+Calendar", "language download $langName successfully: ${download.isSuccessful}")
+                Log.d(
+                    "+Calendar",
+                    "language download $langName successfully: ${download.isSuccessful}"
+                )
             }
         }
     }

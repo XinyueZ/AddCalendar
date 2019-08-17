@@ -11,6 +11,7 @@ import io.add.calendar.BuildConfig
 import io.add.calendar.domain.ISetup
 import io.add.calendar.utils.Event
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,18 +31,26 @@ class SetupViewModel(
     private val _onShareApp = MutableLiveData<Event<String>>()
     val onShareApp: LiveData<Event<String>> = _onShareApp
 
-    fun setup() {
-        if (setupInProgress.get()) return // Ignore any intercept while setup is in progress.
+    private lateinit var setupJob: Job
+    /**
+     * Return the [Job] of setup process.
+     */
+    fun setup(): Job {
+        if (setupInProgress.get()) {
+            // Ignore any intercept while setup is in progress.
+            return setupJob
+        }
 
         setupStart()
         fetchModels()
+        return setupJob
     }
 
     /**
      * Download language model which the device's setting.
      */
     private fun fetchModels() {
-        viewModelScope.launch(Dispatchers.IO) {
+        setupJob = viewModelScope.launch(Dispatchers.IO) {
             getModels()
             withContext(Dispatchers.Main) {
                 setupCompleted()
