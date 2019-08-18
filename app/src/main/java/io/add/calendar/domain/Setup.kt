@@ -7,7 +7,7 @@ import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguag
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateModelManager
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateRemoteModel
 
-class Setup : AbstractSetup() {
+open class Setup : AbstractSetup() {
     override suspend fun downloadModels(
         forceDownload: Boolean,
         vararg langNames: String
