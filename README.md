@@ -15,6 +15,10 @@ WIP, run:
 
 `./gradlew clean connectedCheck --info`
 
+RELEASE, run:
+
+`./gradlew clean connectedCheck assembleRelease --info`
+
 de os -> de✅
 de os -> en✅
 de os -> zh✅
