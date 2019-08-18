@@ -18,5 +18,6 @@ fun <T> getLiveDataValue(liveData: LiveData<T>): T {
     liveData.observeForever(observer)
     latch.await(2, TimeUnit.SECONDS)
 
+    @Suppress("UNCHECKED_CAST")
     return data[0] as T
 }
