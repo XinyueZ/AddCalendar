@@ -4,6 +4,7 @@ import android.content.Context
 import android.icu.util.Calendar
 import android.telephony.TelephonyManager
 import android.util.Log
+import androidx.core.content.getSystemService
 import androidx.core.os.LocaleListCompat
 import androidx.textclassifier.TextClassification
 import androidx.textclassifier.TextClassificationManager
@@ -17,6 +18,7 @@ import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslateLanguag
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslator
 import com.google.firebase.ml.naturallanguage.translate.FirebaseTranslatorOptions
 import java.util.Date
+import java.util.Locale
 
 const val UND = -1
 
@@ -34,9 +36,8 @@ class DatetimeInference(
     context: Context,
     _source: String,
     private val fallbackLanguage: FallbackLanguageProvider = {
-        val telephonyManager =
-            context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        telephonyManager.simCountryIso
+        val telephonyManager: TelephonyManager? = context.getSystemService()
+        telephonyManager?.simCountryIso ?: Locale.getDefault().language
     }
 ) : IDatetimeInference {
 
